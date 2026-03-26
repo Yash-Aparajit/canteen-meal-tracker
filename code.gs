@@ -1,104 +1,119 @@
+
+/* ================= CONFIG ================= */
+
 const MASTER_SHEET = "EMP_MASTER";
 const LOG_SHEET = "BREAKFAST_LOG";
 
+/* ================= MASTER CACHE ================= */
+
 let EMP_CACHE = null;
-
-function doGet(){
-  return HtmlService.createHtmlOutputFromFile("index")
-  .setTitle("Breakfast System")
-  .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-}
+let CACHE_TIME = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 
-/* ========= MASTER CACHE ========= */
+function loadEmpCache() {
 
-function loadEmpCache(){
-  if(EMP_CACHE !== null) return;
+  const now = Date.now();
+
+  if (EMP_CACHE && (now - CACHE_TIME) < CACHE_TTL) {
+    return;
+  }
 
   const sh = SpreadsheetApp.getActive().getSheetByName(MASTER_SHEET);
-  const data = sh.getRange(2,1,sh.getLastRow()-1,2).getValues();
+  const lastRow = sh.getLastRow();
+
+  if (lastRow < 2) {
+    EMP_CACHE = new Map();
+    return;
+  }
+
+  const data = sh.getRange(2, 1, lastRow - 1, 2).getValues();
 
   EMP_CACHE = new Map();
-  data.forEach(r => {
-    EMP_CACHE.set(String(r[0]).trim(), r[1]);
+
+  data.forEach(row => {
+    EMP_CACHE.set(String(row[0]).trim(), row[1]);
   });
+
+  CACHE_TIME = now;
 }
 
-function fetchEmployee(empCode){
 
-  if(!empCode) return {status:false,msg:"Invalid Code"};
+/* ================= FETCH EMPLOYEE ================= */
+
+function fetchEmployee(empCode) {
+
+  if (!empCode) {
+    return { status: false, msg: "Invalid Code" };
+  }
 
   loadEmpCache();
 
-  if(!EMP_CACHE.has(String(empCode))){
-    return {status:false,msg:"Employee Not Found"};
+  if (!EMP_CACHE.has(String(empCode))) {
+    return { status: false, msg: "Employee Not Found" };
   }
 
   return {
-    status:true,
+    status: true,
     name: EMP_CACHE.get(String(empCode))
   };
 }
 
 
-/* ========= TIME WINDOW ========= */
+/* ================= TIME WINDOW ================= */
 
-function getShiftWindow(){
+function getShiftWindow() {
 
   const now = new Date();
-  const minutes = now.getHours()*60 + now.getMinutes();
+  const minutes = now.getHours() * 60 + now.getMinutes();
 
-  const FIRST_START = 6*60;
-  const FIRST_END = 6*60 + 45;
+  const FIRST_START = 6 * 60;
+  const FIRST_END = 6 * 60 + 45;
 
-  const GENERAL_START = 9*60;
-  const GENERAL_END = 9*60 + 45;
+  const GENERAL_START = 9 * 60;
+  const GENERAL_END = 9 * 60 + 45;
 
-  const SECOND_START = 15*60;
-  const SECOND_END = 15*60 + 45;
+  const SECOND_START = 15 * 60;
+  const SECOND_END = 15 * 60 + 45;
 
-  if(minutes >= FIRST_START && minutes <= FIRST_END){
+  if (minutes >= FIRST_START && minutes <= FIRST_END) {
     return "1st Shift";
   }
 
-  if(minutes >= GENERAL_START && minutes <= GENERAL_END){
+  if (minutes >= GENERAL_START && minutes <= GENERAL_END) {
     return "General Shift";
   }
 
-  if(minutes >= SECOND_START && minutes <= SECOND_END){
+  if (minutes >= SECOND_START && minutes <= SECOND_END) {
     return "2nd Shift";
   }
 
-  return null; // night or invalid
+  return null;
 }
 
 
-/* ========= MAIN SAVE ========= */
+/* ================= SAVE BREAKFAST ================= */
 
-function logBreakfast(payload){
+function logBreakfast(payload) {
 
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
 
-  try{
+  try {
 
-    if(!payload.empCode || !payload.empName || !payload.shift){
-      return {status:false,msg:"Validation Failed"};
+    if (!payload.empCode || !payload.empName || !payload.shift) {
+      return { status: false, msg: "Validation Failed" };
     }
 
     const autoShift = getShiftWindow();
 
-    if(payload.shift !== "Night Shift"){
-      if(!autoShift){
-        return {status:false,msg:"Not eligible at this time"};
-      }
-      if(autoShift !== payload.shift){
-        return {status:false,msg:"Not eligible at this time"};
+    if (payload.shift !== "Night Shift") {
+      if (!autoShift || autoShift !== payload.shift) {
+        return { status: false, msg: "Not eligible at this time" };
       }
     }
 
     const sheet = SpreadsheetApp.getActive().getSheetByName(LOG_SHEET);
-
     const now = new Date();
 
     const dateKey = Utilities.formatDate(
@@ -109,16 +124,18 @@ function logBreakfast(payload){
 
     const lastRow = sheet.getLastRow();
 
-    if(lastRow > 1){
-      const data = sheet.getRange(2,2,lastRow-1,4).getValues();
+    if (lastRow > 1) {
 
-      for(let i=0;i<data.length;i++){
-        if(
+      const data = sheet.getRange(2, 2, lastRow - 1, 4).getValues();
+
+      for (let i = 0; i < data.length; i++) {
+
+        if (
           String(data[i][0]) === String(payload.empCode) &&
           String(data[i][2]) === String(payload.shift) &&
           String(data[i][3]) === String(dateKey)
-        ){
-          return {status:false,msg:"Already taken"};
+        ) {
+          return { status: false, msg: "Already taken" };
         }
       }
     }
@@ -137,13 +154,25 @@ function logBreakfast(payload){
       dateKey
     ]);
 
-    return {status:true};
+    return { status: true };
 
-  }catch(err){
-    return {status:false,msg:err.message};
-  }
-  finally{
+  } catch (err) {
+
+    return { status: false, msg: err.message };
+
+  } finally {
+
     lock.releaseLock();
   }
+}
+
+
+/* ================= WEB APP ================= */
+
+function doGet() {
+  return HtmlService
+    .createHtmlOutputFromFile("index")
+    .setTitle("Breakfast System")
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
