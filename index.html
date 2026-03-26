@@ -85,35 +85,71 @@ font-weight:600;
 
 <script>
 
-let emp = document.getElementById("emp");
+let empField = document.getElementById("emp");
+let nameField = document.getElementById("name");
 
-emp.focus();
+let lastEmpRequested = "";
+let empTimer = null;
 
-emp.addEventListener("change", fetchEmp);
+empField.focus();
+
+/* ===== LIVE FETCH ===== */
+
+empField.addEventListener("input", debouncedFetchEmp);
+
+function debouncedFetchEmp(){
+  clearTimeout(empTimer);
+  empTimer = setTimeout(fetchEmp, 250);
+}
 
 function fetchEmp(){
 
-document.getElementById("loader").style.display="block";
+  const code = empField.value.trim();
 
-google.script.run.withSuccessHandler(res=>{
-document.getElementById("loader").style.display="none";
+  lastEmpRequested = code;
 
-if(res.status){
-document.getElementById("name").value = res.name;
-}else{
-showMsg(res.msg,false);
+  if(!code){
+    nameField.value = "";
+    nameField.style.color = "#111";
+    return;
+  }
+
+  nameField.style.color = "#666";
+  nameField.value = "Fetching...";
+
+  google.script.run
+  .withSuccessHandler(res=>{
+
+    if(code !== lastEmpRequested) return;
+
+    if(res.status){
+      nameField.style.color = "#111";
+      nameField.value = res.name;
+    }else{
+      nameField.style.color = "red";
+      nameField.value = "Invalid Employee";
+    }
+
+  })
+  .withFailureHandler(()=>{
+
+    if(code !== lastEmpRequested) return;
+
+    nameField.style.color = "red";
+    nameField.value = "Lookup Error";
+
+  })
+  .fetchEmployee(code);
 }
 
-}).fetchEmployee(emp.value.trim());
 
-}
-
+/* ===== SAVE ===== */
 
 function save(){
 
 let payload = {
-empCode: emp.value.trim(),
-empName: document.getElementById("name").value,
+empCode: empField.value.trim(),
+empName: nameField.value,
 shift: document.getElementById("shift").value
 };
 
@@ -158,15 +194,14 @@ el.innerText = msg;
 
 function resetForm(){
 setTimeout(()=>{
-emp.value="";
-document.getElementById("name").value="";
+empField.value="";
+nameField.value="";
 document.getElementById("shift").value="";
 document.getElementById("msg").innerText="";
-emp.focus();
+empField.focus();
 },700);
 }
 
 </script>
-
 </body>
 </html>
