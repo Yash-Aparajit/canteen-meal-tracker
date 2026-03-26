@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+
+body{
+font-family: system-ui;
+background:#f6f8fb;
+padding:20px;
+}
+
+.card{
+max-width:420px;
+margin:auto;
+background:white;
+padding:25px;
+border-radius:16px;
+box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+
+input, select, button{
+width:100%;
+padding:14px;
+margin-top:12px;
+font-size:16px;
+border-radius:10px;
+border:1px solid #ddd;
+}
+
+button{
+background:#2563eb;
+color:white;
+border:none;
+font-weight:600;
+}
+
+.loader{
+display:none;
+text-align:center;
+}
+
+.success{
+color:green;
+text-align:center;
+}
+
+.error{
+color:red;
+text-align:center;
+}
+
+</style>
+</head>
+<body>
+
+<div class="card">
+
+<h3>Breakfast Scan</h3>
+
+<input id="emp" placeholder="Scan Employee Code">
+
+<div id="loader" class="loader">Fetching...</div>
+
+<input id="name" placeholder="Employee Name" readonly>
+
+<select id="shift">
+<option value="">Select Shift</option>
+<option>1st Shift</option>
+<option>2nd Shift</option>
+<option>General Shift</option>
+<option>Night Shift</option>
+</select>
+
+<button onclick="save()">SAVE</button>
+
+<div id="msg"></div>
+
+</div>
+
+<script>
+
+let empInput = document.getElementById("emp");
+
+empInput.addEventListener("change", fetchEmp);
+
+function fetchEmp(){
+
+document.getElementById("loader").style.display="block";
+
+google.script.run.withSuccessHandler(res=>{
+document.getElementById("loader").style.display="none";
+
+if(res.status){
+document.getElementById("name").value = res.name;
+}else{
+showMsg(res.msg,false);
+}
+
+}).fetchEmployee(empInput.value);
+
+}
+
+function save(){
+
+let payload = {
+empCode: empInput.value,
+empName: document.getElementById("name").value,
+shift: document.getElementById("shift").value
+};
+
+google.script.run.withSuccessHandler(res=>{
+if(res.status){
+showMsg("Saved",true);
+resetForm();
+}else{
+showMsg(res.msg,false);
+}
+}).logBreakfast(payload);
+
+}
+
+function showMsg(msg,ok){
+let el = document.getElementById("msg");
+el.className = ok ? "success" : "error";
+el.innerText = msg;
+}
+
+function resetForm(){
+empInput.value="";
+document.getElementById("name").value="";
+document.getElementById("shift").value="";
+empInput.focus();
+}
+
+</script>
+
+</body>
+</html>
