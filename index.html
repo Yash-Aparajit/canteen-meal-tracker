@@ -5,8 +5,8 @@
 <style>
 
 body{
-font-family: system-ui;
-background:#f6f8fb;
+font-family:system-ui;
+background:#eef2f7;
 padding:20px;
 }
 
@@ -15,21 +15,26 @@ max-width:420px;
 margin:auto;
 background:white;
 padding:25px;
-border-radius:16px;
-box-shadow:0 6px 18px rgba(0,0,0,0.08);
+border-radius:18px;
+box-shadow:0 10px 30px rgba(0,0,0,0.12);
+}
+
+h2{
+text-align:center;
+margin-bottom:10px;
 }
 
 input, select, button{
 width:100%;
-padding:14px;
-margin-top:12px;
-font-size:16px;
-border-radius:10px;
-border:1px solid #ddd;
+padding:16px;
+margin-top:14px;
+font-size:18px;
+border-radius:12px;
+border:1px solid #ccc;
 }
 
 button{
-background:#2563eb;
+background:#0b5cff;
 color:white;
 border:none;
 font-weight:600;
@@ -38,17 +43,17 @@ font-weight:600;
 .loader{
 display:none;
 text-align:center;
+margin-top:10px;
 }
 
-.success{
-color:green;
+.msg{
 text-align:center;
+margin-top:10px;
+font-weight:600;
 }
 
-.error{
-color:red;
-text-align:center;
-}
+.success{ color:green; }
+.error{ color:red; }
 
 </style>
 </head>
@@ -56,33 +61,35 @@ text-align:center;
 
 <div class="card">
 
-<h3>Breakfast Scan</h3>
+<h2>Breakfast Scan</h2>
 
-<input id="emp" placeholder="Scan Employee Code">
+<input id="emp" placeholder="Scan / Enter Employee Code">
 
 <div id="loader" class="loader">Fetching...</div>
 
 <input id="name" placeholder="Employee Name" readonly>
 
 <select id="shift">
-<option value="">Select Shift</option>
+<option value="">-- Select Shift --</option>
 <option>1st Shift</option>
-<option>2nd Shift</option>
 <option>General Shift</option>
+<option>2nd Shift</option>
 <option>Night Shift</option>
 </select>
 
 <button onclick="save()">SAVE</button>
 
-<div id="msg"></div>
+<div id="msg" class="msg"></div>
 
 </div>
 
 <script>
 
-let empInput = document.getElementById("emp");
+let emp = document.getElementById("emp");
 
-empInput.addEventListener("change", fetchEmp);
+emp.focus();
+
+emp.addEventListener("change", fetchEmp);
 
 function fetchEmp(){
 
@@ -97,40 +104,66 @@ document.getElementById("name").value = res.name;
 showMsg(res.msg,false);
 }
 
-}).fetchEmployee(empInput.value);
+}).fetchEmployee(emp.value.trim());
 
 }
+
 
 function save(){
 
 let payload = {
-empCode: empInput.value,
+empCode: emp.value.trim(),
 empName: document.getElementById("name").value,
 shift: document.getElementById("shift").value
 };
 
 google.script.run.withSuccessHandler(res=>{
 if(res.status){
-showMsg("Saved",true);
+successUX();
 resetForm();
 }else{
+failUX();
 showMsg(res.msg,false);
 }
 }).logBreakfast(payload);
 
 }
 
+
+function successUX(){
+navigator.vibrate(120);
+beep(800,120);
+showMsg("Saved",true);
+}
+
+function failUX(){
+navigator.vibrate([100,60,100]);
+beep(200,250);
+}
+
+function beep(freq,duration){
+let ctx = new (window.AudioContext || window.webkitAudioContext)();
+let osc = ctx.createOscillator();
+osc.frequency.value = freq;
+osc.connect(ctx.destination);
+osc.start();
+setTimeout(()=>osc.stop(), duration);
+}
+
 function showMsg(msg,ok){
 let el = document.getElementById("msg");
-el.className = ok ? "success" : "error";
+el.className = ok ? "msg success" : "msg error";
 el.innerText = msg;
 }
 
 function resetForm(){
-empInput.value="";
+setTimeout(()=>{
+emp.value="";
 document.getElementById("name").value="";
 document.getElementById("shift").value="";
-empInput.focus();
+document.getElementById("msg").innerText="";
+emp.focus();
+},700);
 }
 
 </script>
