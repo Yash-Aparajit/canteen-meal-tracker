@@ -2,61 +2,57 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
 
-body{
-font-family:system-ui;
-background:#eef2f7;
-padding:20px;
+body {
+  font-family: system-ui;
+  background: #eef2f7;
+  padding: 20px;
 }
 
-.card{
-max-width:420px;
-margin:auto;
-background:white;
-padding:25px;
-border-radius:18px;
-box-shadow:0 10px 30px rgba(0,0,0,0.12);
+.card {
+  max-width: 420px;
+  margin: auto;
+  background: white;
+  padding: 25px;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
 }
 
-h2{
-text-align:center;
-margin-bottom:10px;
+h2 {
+  text-align: center;
+  margin-bottom: 10px;
 }
 
-input, select, button{
-width:100%;
-padding:16px;
-margin-top:14px;
-font-size:18px;
-border-radius:12px;
-border:1px solid #ccc;
+input, select, button {
+  width: 100%;
+  padding: 16px;
+  margin-top: 14px;
+  font-size: 18px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
 }
 
-button{
-background:#0b5cff;
-color:white;
-border:none;
-font-weight:600;
+button {
+  background: #0b5cff;
+  color: white;
+  border: none;
+  font-weight: 600;
 }
 
-.loader{
-display:none;
-text-align:center;
-margin-top:10px;
+.msg {
+  text-align: center;
+  margin-top: 10px;
+  font-weight: 600;
 }
 
-.msg{
-text-align:center;
-margin-top:10px;
-font-weight:600;
-}
-
-.success{ color:green; }
-.error{ color:red; }
+.success { color: green; }
+.error { color: red; }
 
 </style>
 </head>
+
 <body>
 
 <div class="card">
@@ -64,8 +60,6 @@ font-weight:600;
 <h2>Breakfast Scan</h2>
 
 <input id="emp" placeholder="Scan / Enter Employee Code">
-
-<div id="loader" class="loader">Fetching...</div>
 
 <input id="name" placeholder="Employee Name" readonly>
 
@@ -89,26 +83,28 @@ let empField = document.getElementById("emp");
 let nameField = document.getElementById("name");
 
 let lastEmpRequested = "";
+let lastFetched = "";
 let empTimer = null;
 
 empField.focus();
 
 /* ===== LIVE FETCH ===== */
 
-empField.addEventListener("input", debouncedFetchEmp);
-
-function debouncedFetchEmp(){
+empField.addEventListener("input", function () {
   clearTimeout(empTimer);
   empTimer = setTimeout(fetchEmp, 250);
-}
+});
 
-function fetchEmp(){
+function fetchEmp() {
 
   const code = empField.value.trim();
 
+  if (code === lastFetched) return;
+
+  lastFetched = code;
   lastEmpRequested = code;
 
-  if(!code){
+  if (!code) {
     nameField.value = "";
     nameField.style.color = "#111";
     return;
@@ -118,90 +114,104 @@ function fetchEmp(){
   nameField.value = "Fetching...";
 
   google.script.run
-  .withSuccessHandler(res=>{
+    .withSuccessHandler(function (res) {
 
-    if(code !== lastEmpRequested) return;
+      if (code !== lastEmpRequested) return;
 
-    if(res.status){
-      nameField.style.color = "#111";
-      nameField.value = res.name;
-    }else{
+      if (res.status) {
+        nameField.style.color = "#111";
+        nameField.value = res.name;
+      } else {
+        nameField.style.color = "red";
+        nameField.value = "Invalid Employee";
+      }
+
+    })
+    .withFailureHandler(function () {
+
+      if (code !== lastEmpRequested) return;
+
       nameField.style.color = "red";
-      nameField.value = "Invalid Employee";
-    }
+      nameField.value = "Lookup Error";
 
-  })
-  .withFailureHandler(()=>{
-
-    if(code !== lastEmpRequested) return;
-
-    nameField.style.color = "red";
-    nameField.value = "Lookup Error";
-
-  })
-  .fetchEmployee(code);
+    })
+    .fetchEmployee(code);
 }
 
 
 /* ===== SAVE ===== */
 
-function save(){
+function save() {
 
-let payload = {
-empCode: empField.value.trim(),
-empName: nameField.value,
-shift: document.getElementById("shift").value
-};
+  if (nameField.value === "Fetching...") {
+    showMsg("Wait for validation", false);
+    return;
+  }
 
-google.script.run.withSuccessHandler(res=>{
-if(res.status){
-successUX();
-resetForm();
-}else{
-failUX();
-showMsg(res.msg,false);
-}
-}).logBreakfast(payload);
+  if (nameField.value === "Invalid Employee") {
+    showMsg("Invalid Employee", false);
+    return;
+  }
 
-}
+  let payload = {
+    empCode: empField.value.trim(),
+    empName: nameField.value,
+    shift: document.getElementById("shift").value
+  };
 
+  google.script.run.withSuccessHandler(function (res) {
 
-function successUX(){
-navigator.vibrate(120);
-beep(800,120);
-showMsg("Saved",true);
-}
+    if (res.status) {
+      successUX();
+      resetForm();
+    } else {
+      failUX();
+      showMsg(res.msg, false);
+    }
 
-function failUX(){
-navigator.vibrate([100,60,100]);
-beep(200,250);
-}
-
-function beep(freq,duration){
-let ctx = new (window.AudioContext || window.webkitAudioContext)();
-let osc = ctx.createOscillator();
-osc.frequency.value = freq;
-osc.connect(ctx.destination);
-osc.start();
-setTimeout(()=>osc.stop(), duration);
+  }).logBreakfast(payload);
 }
 
-function showMsg(msg,ok){
-let el = document.getElementById("msg");
-el.className = ok ? "msg success" : "msg error";
-el.innerText = msg;
+
+/* ===== UX ===== */
+
+function successUX() {
+  navigator.vibrate(120);
+  beep(800, 120);
+  showMsg("Saved", true);
 }
 
-function resetForm(){
-setTimeout(()=>{
-empField.value="";
-nameField.value="";
-document.getElementById("shift").value="";
-document.getElementById("msg").innerText="";
-empField.focus();
-},700);
+function failUX() {
+  navigator.vibrate([100, 60, 100]);
+  beep(200, 250);
+}
+
+function beep(freq, duration) {
+  let ctx = new (window.AudioContext || window.webkitAudioContext)();
+  let osc = ctx.createOscillator();
+  osc.frequency.value = freq;
+  osc.connect(ctx.destination);
+  osc.start();
+  setTimeout(() => osc.stop(), duration);
+}
+
+function showMsg(msg, ok) {
+  let el = document.getElementById("msg");
+  el.className = ok ? "msg success" : "msg error";
+  el.innerText = msg;
+}
+
+function resetForm() {
+  setTimeout(function () {
+    empField.value = "";
+    nameField.value = "";
+    document.getElementById("shift").value = "";
+    document.getElementById("msg").innerText = "";
+    empField.focus();
+  }, 700);
 }
 
 </script>
+
 </body>
 </html>
