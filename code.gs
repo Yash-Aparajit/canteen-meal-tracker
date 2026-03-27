@@ -1,4 +1,3 @@
-
 /* ================= CONFIG ================= */
 
 const MASTER_SHEET = "EMP_MASTER";
