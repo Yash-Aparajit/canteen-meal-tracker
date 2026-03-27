@@ -88,7 +88,7 @@ let lastFetched = "";
 let empTimer = null;
 
 empField.focus();
-suggestShift();
+runShiftSuggestionCycle();
 
 /* ===== LIVE FETCH ===== */
 
@@ -207,7 +207,7 @@ function resetForm() {
   setTimeout(function () {
     empField.value = "";
     nameField.value = "";
-    document.getElementById("shift").value = "";
+    suggestShift();
     document.getElementById("msg").innerText = "";
     empField.focus();
   }, 700);
@@ -233,6 +233,21 @@ function suggestShift(){
   if(shift){
     document.getElementById("shift").value = shift;
   }
+}
+
+function runShiftSuggestionCycle(){
+
+  suggestShift();
+
+  setInterval(suggestShift, 60000);
+
+  document.addEventListener("visibilitychange", function(){
+    if(!document.hidden){
+      suggestShift();
+      empField.focus();
+    }
+  });
+
 }
 
 </script>
