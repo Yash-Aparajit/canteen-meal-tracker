@@ -118,6 +118,7 @@ function fetchEmp() {
 
       if (code !== lastEmpRequested) return;
 
+      isFetching = false;
       if (res.status) {
         nameField.style.color = "#111";
         nameField.value = res.name;
@@ -131,6 +132,7 @@ function fetchEmp() {
 
       if (code !== lastEmpRequested) return;
 
+      isFetching = false;
       nameField.style.color = "red";
       nameField.value = "Lookup Error";
 
@@ -142,6 +144,8 @@ function fetchEmp() {
 /* ===== SAVE ===== */
 
 function save() {
+
+  isFetching = false;
 
   if (isFetching) {
     showMsg("Wait for validation", false);
