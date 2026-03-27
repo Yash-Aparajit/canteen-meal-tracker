@@ -101,9 +101,6 @@ function fetchEmp() {
 
   const code = empField.value.trim();
 
-  if (code === lastFetched) return;
-
-  lastFetched = code;
   lastEmpRequested = code;
 
   if (!code) {
@@ -230,8 +227,12 @@ function suggestShift(){
     shift = "2nd Shift";
   }
 
+  const el = document.getElementById("shift");
+
   if(shift){
-    document.getElementById("shift").value = shift;
+    el.value = shift;
+  }else if(el.value !== "Night Shift"){
+    el.value = "";
   }
 }
 
@@ -239,7 +240,9 @@ function runShiftSuggestionCycle(){
 
   suggestShift();
 
-  setInterval(suggestShift, 60000);
+  if(!window.shiftTimer){
+    window.shiftTimer = setInterval(suggestShift, 60000);
+  }
 
   document.addEventListener("visibilitychange", function(){
     if(!document.hidden){
