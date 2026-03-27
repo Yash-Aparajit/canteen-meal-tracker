@@ -175,4 +175,3 @@ function doGet() {
     .setTitle("Breakfast System")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
-
