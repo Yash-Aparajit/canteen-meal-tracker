@@ -32,6 +32,7 @@ input, select, button {
   font-size: 18px;
   border-radius: 12px;
   border: 1px solid #ccc;
+  box-sizing: border-box;
 }
 
 button {
@@ -87,6 +88,7 @@ let lastFetched = "";
 let empTimer = null;
 
 empField.focus();
+suggestShift();
 
 /* ===== LIVE FETCH ===== */
 
@@ -209,6 +211,28 @@ function resetForm() {
     document.getElementById("msg").innerText = "";
     empField.focus();
   }, 700);
+}
+
+function suggestShift(){
+
+  const now = new Date();
+  const minutes = now.getHours() * 60 + now.getMinutes();
+
+  let shift = "";
+
+  if(minutes >= 360 && minutes <= 405){
+    shift = "1st Shift";
+  }
+  else if(minutes >= 540 && minutes <= 585){
+    shift = "General Shift";
+  }
+  else if(minutes >= 900 && minutes <= 945){
+    shift = "2nd Shift";
+  }
+
+  if(shift){
+    document.getElementById("shift").value = shift;
+  }
 }
 
 </script>
