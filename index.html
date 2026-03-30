@@ -151,16 +151,27 @@ function save() {
 
   if (isFetching) {
     showMsg("Wait for validation", false);
+    isSaving = false;
     return;
   }
 
   if (nameField.value === "Invalid Employee") {
     showMsg("Invalid Employee", false);
+    isSaving = false;
+    return;
+  }
+
+  const shift = document.getElementById("shift").value;
+
+  if (!shift) {
+    showMsg("Select shift", false);
+    isSaving = false;
     return;
   }
 
   if (!nameField.value) {
     showMsg("Scan employee first", false);
+    isSaving = false;
     return;
   }
 
