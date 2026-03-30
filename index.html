@@ -86,6 +86,7 @@ let nameField = document.getElementById("name");
 let lastEmpRequested = "";
 let empTimer = null;
 let isFetching = false;
+let isSaving = false;
 
 empField.focus();
 runShiftSuggestionCycle();
@@ -145,6 +146,9 @@ function fetchEmp() {
 
 function save() {
 
+  if (isSaving) return;
+  isSaving = true;
+
   if (isFetching) {
     showMsg("Wait for validation", false);
     return;
@@ -170,12 +174,15 @@ function save() {
 
     if (res.status) {
       successUX();
-      resetForm();
+      setTimeout(() => {
+        resetForm();
+        isSaving = false;
+      }, 600);
     } else {
       failUX();
       showMsg(res.msg, false);
+      isSaving = false;
     }
-
   }).logBreakfast(payload);
 }
 
