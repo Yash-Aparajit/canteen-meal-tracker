@@ -119,7 +119,7 @@ function fetchEmp() {
   google.script.run
     .withSuccessHandler(function (res) {
 
-      if (code !== lastEmpRequested) return;
+      if (!code || code !== lastEmpRequested) return;
 
       isFetching = false;
       if (res.status) {
@@ -133,7 +133,7 @@ function fetchEmp() {
     })
     .withFailureHandler(function () {
 
-      if (code !== lastEmpRequested) return;
+      if (!code || code !== lastEmpRequested) return;
 
       isFetching = false;
       nameField.style.color = "red";
