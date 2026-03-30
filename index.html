@@ -88,6 +88,8 @@ let empTimer = null;
 let isFetching = false;
 let isSaving = false;
 
+let saveBtn = document.querySelector("button");
+
 empField.focus();
 runShiftSuggestionCycle();
 
@@ -149,15 +151,25 @@ function save() {
   if (isSaving) return;
   isSaving = true;
 
+  saveBtn.disabled = true;
+  saveBtn.style.opacity = "0.6";
+  saveBtn.style.cursor = "not-allowed";
+
   if (isFetching) {
     showMsg("Wait for validation", false);
     isSaving = false;
+    saveBtn.disabled = false;
+    saveBtn.style.opacity = "1";
+    saveBtn.style.cursor = "pointer";
     return;
   }
 
   if (nameField.value === "Invalid Employee") {
     showMsg("Invalid Employee", false);
     isSaving = false;
+    saveBtn.disabled = false;
+    saveBtn.style.opacity = "1";
+    saveBtn.style.cursor = "pointer";
     return;
   }
 
@@ -166,19 +178,25 @@ function save() {
   if (!shift) {
     showMsg("Select shift", false);
     isSaving = false;
+    saveBtn.disabled = false;
+    saveBtn.style.opacity = "1";
+    saveBtn.style.cursor = "pointer";
     return;
   }
 
   if (!nameField.value) {
     showMsg("Scan employee first", false);
     isSaving = false;
+    saveBtn.disabled = false;
+    saveBtn.style.opacity = "1";
+    saveBtn.style.cursor = "pointer";
     return;
   }
 
   let payload = {
     empCode: empField.value.trim(),
     empName: nameField.value,
-    shift: document.getElementById("shift").value
+    shift: shift
   };
 
   google.script.run.withSuccessHandler(function (res) {
@@ -188,11 +206,17 @@ function save() {
       setTimeout(() => {
         resetForm();
         isSaving = false;
+        saveBtn.disabled = false;
+        saveBtn.style.opacity = "1";
+        saveBtn.style.cursor = "pointer";
       }, 600);
     } else {
       failUX();
       showMsg(res.msg, false);
       isSaving = false;
+      saveBtn.disabled = false;
+      saveBtn.style.opacity = "1";
+      saveBtn.style.cursor = "pointer";
     }
   }).logBreakfast(payload);
 }
