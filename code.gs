@@ -156,7 +156,7 @@ function logBreakfast(payload) {
 
     return { status: true };
 
-  } catch (err) {
+  }  (err) {
 
     return { status: false, msg: err.message };
 
