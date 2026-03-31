@@ -11,7 +11,6 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 
 function loadEmpCache() {
-
   const now = Date.now();
 
   if (EMP_CACHE && (now - CACHE_TIME) < CACHE_TTL) {
