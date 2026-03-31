@@ -295,17 +295,7 @@ function runShiftSuggestionCycle(){
       suggestShift();
       empField.focus();
     }
-  });
-
-  /* ===== AUTO RELOAD WATCHDOG ===== */
-  if(!window.reloadTimer){
-    window.reloadTimer = setTimeout(function(){
-      location.reload();
-    }, 6 * 60 * 60 * 1000); // 6 hours
-  }
-
-}
-
+  })
 </script>
 
 </body>
