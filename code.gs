@@ -121,7 +121,7 @@ function logBreakfast(payload) {
       "yyyyMMdd"
     );
 
-    const lastRow = sheet.getLastRow();
+
 
     if (lastRow > 1) {
 
@@ -167,14 +167,4 @@ function logBreakfast(payload) {
 
     lock.releaseLock();
   }
-}
-
-
-/* ================= WEB APP ================= */
-
-function doGet() {
-  return HtmlService
-    .createHtmlOutputFromFile("index")
-    .setTitle("Breakfast System")
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
