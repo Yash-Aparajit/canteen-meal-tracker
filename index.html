@@ -5,12 +5,6 @@
 
 <style>
 
-body {
-  font-family: system-ui;
-  background: #eef2f7;
-  padding: 20px;
-}
-
 .card {
   max-width: 420px;
   margin: auto;
@@ -58,8 +52,6 @@ button {
 
 <div class="card">
 
-<h2>Breakfast Scan</h2>
-
 <input id="emp" placeholder="Scan / Enter Employee Code">
 
 <input id="name" placeholder="Employee Name" readonly>
@@ -82,9 +74,6 @@ button {
 
 let empField = document.getElementById("emp");
 let nameField = document.getElementById("name");
-
-let lastEmpRequested = "";
-let empTimer = null;
 let isFetching = false;
 let isSaving = false;
 
@@ -153,7 +142,6 @@ function save() {
 
   saveBtn.disabled = true;
   saveBtn.style.opacity = "0.6";
-  saveBtn.style.cursor = "not-allowed";
 
   if (isFetching) {
     showMsg("Wait for validation", false);
@@ -173,7 +161,6 @@ function save() {
     return;
   }
 
-  const shift = document.getElementById("shift").value;
 
   if (!shift) {
     showMsg("Select shift", false);
