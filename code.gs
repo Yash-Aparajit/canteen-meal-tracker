@@ -36,7 +36,6 @@ function loadEmpCache() {
   CACHE_TIME = now;
 }
 
-
 /* ================= FETCH EMPLOYEE ================= */
 
 function fetchEmployee(empCode) {
@@ -56,7 +55,6 @@ function fetchEmployee(empCode) {
     name: EMP_CACHE.get(String(empCode))
   };
 }
-
 
 /* ================= TIME WINDOW ================= */
 
