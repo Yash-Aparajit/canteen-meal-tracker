@@ -5,6 +5,12 @@
 
 <style>
 
+body {
+  font-family: system-ui;
+  background: #eef2f7;
+  padding: 20px;
+}
+
 .card {
   max-width: 420px;
   margin: auto;
@@ -52,6 +58,8 @@ button {
 
 <div class="card">
 
+<h2>Breakfast Scan</h2>
+
 <input id="emp" placeholder="Scan / Enter Employee Code">
 
 <input id="name" placeholder="Employee Name" readonly>
@@ -74,6 +82,9 @@ button {
 
 let empField = document.getElementById("emp");
 let nameField = document.getElementById("name");
+
+let lastEmpRequested = "";
+let empTimer = null;
 let isFetching = false;
 let isSaving = false;
 
@@ -142,6 +153,7 @@ function save() {
 
   saveBtn.disabled = true;
   saveBtn.style.opacity = "0.6";
+  saveBtn.style.cursor = "not-allowed";
 
   if (isFetching) {
     showMsg("Wait for validation", false);
@@ -161,6 +173,7 @@ function save() {
     return;
   }
 
+  const shift = document.getElementById("shift").value;
 
   if (!shift) {
     showMsg("Select shift", false);
@@ -261,7 +274,8 @@ function suggestShift(){
   const now = new Date();
   const minutes = now.getHours() * 60 + now.getMinutes();
 
-  
+  let shift = "";
+
   if(minutes >= 360 && minutes <= 405){
     shift = "1st Shift";
   }
@@ -294,7 +308,17 @@ function runShiftSuggestionCycle(){
       suggestShift();
       empField.focus();
     }
-  })
+  });
+
+  /* ===== AUTO RELOAD WATCHDOG ===== */
+  if(!window.reloadTimer){
+    window.reloadTimer = setTimeout(function(){
+      location.reload();
+    }, 6 * 60 * 60 * 1000); // 6 hours
+  }
+
+}
+
 </script>
 
 </body>
