@@ -145,8 +145,12 @@ function logBreakfast(payload) {
       "dd/MM/yyyy HH:mm"
     );
 
+    const dateStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
+    const timeStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "HH:mm");
+
     sheet.appendRow([
-      timestamp,
+      dateStr,
+      timeStr,
       payload.empCode,
       payload.empName,
       payload.shift,
