@@ -11,6 +11,7 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 
 function loadEmpCache() {
+
   const now = Date.now();
 
   if (EMP_CACHE && (now - CACHE_TIME) < CACHE_TTL) {
@@ -36,6 +37,7 @@ function loadEmpCache() {
   CACHE_TIME = now;
 }
 
+
 /* ================= FETCH EMPLOYEE ================= */
 
 function fetchEmployee(empCode) {
@@ -55,6 +57,7 @@ function fetchEmployee(empCode) {
     name: EMP_CACHE.get(String(empCode))
   };
 }
+
 
 /* ================= TIME WINDOW ================= */
 
@@ -118,7 +121,7 @@ function logBreakfast(payload) {
       "yyyyMMdd"
     );
 
-
+    const lastRow = sheet.getLastRow();
 
     if (lastRow > 1) {
 
@@ -156,7 +159,7 @@ function logBreakfast(payload) {
 
     return { status: true };
 
-  }  (err) {
+  } catch (err) {
 
     return { status: false, msg: err.message };
 
@@ -164,4 +167,14 @@ function logBreakfast(payload) {
 
     lock.releaseLock();
   }
+}
+
+
+/* ================= WEB APP ================= */
+
+function doGet() {
+  return HtmlService
+    .createHtmlOutputFromFile("index")
+    .setTitle("Breakfast System")
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
