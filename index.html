@@ -69,6 +69,7 @@ button {
 <option>1st Shift</option>
 <option>General Shift</option>
 <option>2nd Shift</option>
+<option>OT Shift</option>
 <option>Night Shift</option>
 </select>
 
@@ -109,6 +110,7 @@ function fetchEmp() {
   if (!code) {
     nameField.value = "";
     nameField.style.color = "#111";
+    document.getElementById("msg").innerText = "";
     return;
   }
 
@@ -265,8 +267,8 @@ function resetForm() {
 
   setTimeout(() => {
     empField.focus();
+    empField.click();
   }, 50);
-
 }
 
 function suggestShift(){
@@ -284,6 +286,9 @@ function suggestShift(){
   }
   else if(minutes >= 900 && minutes <= 945){
     shift = "2nd Shift";
+  }
+  else if(minutes >= 1105 && minutes <= 1130){
+    shift = "OT Shift";
   }
 
   const el = document.getElementById("shift");
