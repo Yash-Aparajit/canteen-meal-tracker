@@ -7,7 +7,7 @@ const LOG_SHEET = "BREAKFAST_LOG";
 
 let EMP_CACHE = null;
 let CACHE_TIME = 0;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 60000;
 
 
 function loadEmpCache() {
@@ -75,6 +75,9 @@ function getShiftWindow() {
   const SECOND_START = 15 * 60;
   const SECOND_END = 15 * 60 + 45;
 
+  const OT_START = 18 * 60 + 25;
+  const OT_END = 18 * 60 + 50;
+
   if (minutes >= FIRST_START && minutes <= FIRST_END) {
     return "1st Shift";
   }
@@ -85,6 +88,10 @@ function getShiftWindow() {
 
   if (minutes >= SECOND_START && minutes <= SECOND_END) {
     return "2nd Shift";
+  }
+
+  if (minutes >= OT_START && minutes <= OT_END) {
+    return "OT Shift";
   }
 
   return null;
@@ -125,7 +132,7 @@ function logBreakfast(payload) {
 
     if (lastRow > 1) {
 
-      const data = sheet.getRange(2, 2, lastRow - 1, 4).getValues();
+      const data = sheet.getRange(2, 3, lastRow - 1, 4).getValues();
 
       for (let i = 0; i < data.length; i++) {
 
@@ -138,12 +145,6 @@ function logBreakfast(payload) {
         }
       }
     }
-
-    const timestamp = Utilities.formatDate(
-      now,
-      Session.getScriptTimeZone(),
-      "dd/MM/yyyy HH:mm"
-    );
 
     const dateStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "dd/MM/yyyy");
     const timeStr = Utilities.formatDate(now, Session.getScriptTimeZone(), "HH:mm");
@@ -168,7 +169,6 @@ function logBreakfast(payload) {
     lock.releaseLock();
   }
 }
-
 
 /* ================= WEB APP ================= */
 
